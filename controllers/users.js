@@ -30,7 +30,7 @@ module.exports.getUsers = (_, res, next) => {
 module.exports.createUser = (req, res, next) => {
   const { name, about, avatar } = req.body;
 
-  User.create({ name, about, avatar }, { runValidators: true })
+  User.create({ name, about, avatar })
     // вернём записанные в базу данные
     .then((user) => res.status(201).send(user))
     // данные не записались, вернём ошибку

@@ -30,7 +30,7 @@ module.exports.getUsers = (_, res, next) => {
 module.exports.createUser = (req, res, next) => {
   const { name, about, avatar } = req.body;
 
-  User.create({ name, about, avatar })
+  User.create({ name, about, avatar }, { runValidators: true })
     // вернём записанные в базу данные
     .then((user) => res.status(201).send(user))
     // данные не записались, вернём ошибку
@@ -50,7 +50,7 @@ module.exports.updateUser = (req, res, next) => {
   // обновим имя найденного по _id пользователя
   User.findByIdAndUpdate(req.user._id, { name, about }, {
     new: true,
-  })
+  }, { runValidators: true })
     .then((user) => {
       res.status(201).send(user);
     })
@@ -64,7 +64,7 @@ module.exports.updateUser = (req, res, next) => {
 // PATCH /users/me/avatar — update avatar
 module.exports.updateAvatar = (req, res, next) => {
   const { avatar } = req.body;
-  User.findByIdAndUpdate(req.user._id, { avatar })
+  User.findByIdAndUpdate(req.user._id, { avatar }, { runValidators: true })
     .then((user) => res.status(201).send(user))
     .catch((err) => {
       if (err.code === 403) {

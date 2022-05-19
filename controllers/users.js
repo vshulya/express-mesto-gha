@@ -1,19 +1,34 @@
 const User = require('../models/user');
+
 const ForbiddenError = require('../errors/ForbiddenError');
 const NotFoundError = require('../errors/NotFoundError');
 const ConflictError = require('../errors/ConflictError');
+const BadRequestError = require('../errors/BadRequestError');
 
 // GET /users/:userId - return user by _id
 module.exports.getUser = (req, res, next) => {
   User.findById(req.params.id)
-    .then((user) => {
-      if (!user) {
+    .then((user) => res.send(user))
+    .catch((err) => {
+      if (err.code === 404) {
         next(new NotFoundError('Пользователь не найден'));
       }
-      return res.send(user);
-    })
-    .catch(next);
+      if (err.code === 400) {
+        next(new BadRequestError('Id пользователя введено некорректно')); // TODO change message
+      }
+    });
 };
+
+// module.exports.getUser = (req, res, next) => {
+//   User.findById(req.params.id)
+//     .then((user) => {
+//       if (!user) {
+//         next(new NotFoundError('Пользователь не найден'));
+//       }
+//       return res.send(user);
+//     })
+//     .catch(next);
+// };
 
 // GET /users — return users
 module.exports.getUsers = (_, res, next) => {
@@ -32,7 +47,7 @@ module.exports.createUser = (req, res, next) => {
     // данные не записались, вернём ошибку
     .catch((err) => {
       if (err.code === 403) {
-        next(new ForbiddenError('Ошибка валидации'));
+        next(new ForbiddenError('Некорректные данные при создании пользователя'));
       }
       if (err.code === 11000) {
         next(new ConflictError('Пользователь уже существует'));

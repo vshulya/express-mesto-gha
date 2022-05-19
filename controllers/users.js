@@ -19,17 +19,6 @@ module.exports.getUser = (req, res, next) => {
     });
 };
 
-// module.exports.getUser = (req, res, next) => {
-//   User.findById(req.params.id)
-//     .then((user) => {
-//       if (!user) {
-//         next(new NotFoundError('Пользователь не найден'));
-//       }
-//       return res.send(user);
-//     })
-//     .catch(next);
-// };
-
 // GET /users — return users
 module.exports.getUsers = (_, res, next) => {
   User.find({})

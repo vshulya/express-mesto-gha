@@ -9,8 +9,8 @@ const {
   updateAvatar,
 } = require('../controllers/users');
 
-// GET /me — return me
-router.get('/me', getMe);
+// // GET /me — return me
+// router.get('/me', getMe);
 
 // GET /users — return users
 router.get('/', getUsers);

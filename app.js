@@ -19,6 +19,7 @@ mongoose.connect('mongodb://localhost:27017/mestodb');
 
 const errorHandler = (err, req, res, next) => {
   res.status(err.code).res.send({ message: err.message });
+  next();
 };
 
 app.use(errorHandler);

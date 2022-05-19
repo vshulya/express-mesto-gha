@@ -1,16 +1,12 @@
 const router = require('express').Router();
 
 const {
-  getMe,
   getUsers,
   getUser,
   createUser,
   updateUser,
   updateAvatar,
 } = require('../controllers/users');
-
-// // GET /me — return me
-// router.get('/me', getMe);
 
 // GET /users — return users
 router.get('/', getUsers);

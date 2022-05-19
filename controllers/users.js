@@ -35,8 +35,8 @@ module.exports.createUser = (req, res, next) => {
     .then((user) => res.status(201).send(user))
     // данные не записались, вернём ошибку
     .catch((err) => {
-      if (err.code === 403) {
-        next(new ForbiddenError('Некорректные данные при создании пользователя'));
+      if (err.code === 400) {
+        next(new BadRequestError('Некорректные данные при создании пользователя'));
       }
       if (err.code === 11000) {
         next(new ConflictError('Пользователь уже существует'));

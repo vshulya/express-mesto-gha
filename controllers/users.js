@@ -1,23 +1,41 @@
 const User = require('../models/user');
 
-const ForbiddenError = require('../errors/ForbiddenError');
 const NotFoundError = require('../errors/NotFoundError');
 const ConflictError = require('../errors/ConflictError');
-const BadRequestError = require('../errors/BadRequestError');
+const ValidationError = require('../errors/ValidationError');
+const ServerError = require('../errors/ServerError');
 
 // GET /users/:userId - return user by _id
 module.exports.getUser = (req, res, next) => {
   User.findById(req.params.id)
-    .then((user) => res.send(user))
-    .catch((err) => {
-      if (err.code === 404) {
+    .then((user) => {
+      if (!user) {
         next(new NotFoundError('Пользователь не найден'));
       }
-      if (err.code === 400) {
-        next(new BadRequestError('Id пользователя введено некорректно')); // TODO change message
+      res.send(user);
+    })
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new ValidationError('Id пользователя введено некорректно')); // TODO change message
+      } else {
+        next(new ServerError());
       }
     });
 };
+
+// module.exports.getUser = (req, res, next) => {
+//   User.findById(req.params.id)
+//     .then((user) => res.send(user))
+//     .catch((err) => {
+//       if (err.code === 404) {
+//         next(new NotFoundError('Пользователь не найден'));
+//       } else if (err.code === 400) {
+//         next(new ValidationError('Id пользователя введено некорректно')); // TODO change message
+//       } else {
+//         next(new ServerError());
+//       }
+//     });
+// };
 
 // GET /users — return users
 module.exports.getUsers = (_, res, next) => {
@@ -35,11 +53,12 @@ module.exports.createUser = (req, res, next) => {
     .then((user) => res.status(201).send(user))
     // данные не записались, вернём ошибку
     .catch((err) => {
-      if (err.code === 400) {
-        next(new BadRequestError('Некорректные данные при создании пользователя'));
-      }
-      if (err.code === 11000) {
+      if (err.name === 'ValidationError') {
+        next(new ValidationError('Некорректные данные при создании пользователя'));
+      } else if (err.code === 11000) {
         next(new ConflictError('Пользователь уже существует'));
+      } else {
+        next(new ServerError());
       }
     });
 };
@@ -55,8 +74,10 @@ module.exports.updateUser = (req, res, next) => {
       res.status(201).send(user);
     })
     .catch((err) => {
-      if (err.code === 403) {
-        next(new ForbiddenError('Ошибка валидации'));
+      if (err.name === 'ValidationError') {
+        next(new ValidationError('Некорректные данные при обновлении пользователя'));
+      } else {
+        next(new ServerError());
       }
     });
 };
@@ -67,8 +88,10 @@ module.exports.updateAvatar = (req, res, next) => {
   User.findByIdAndUpdate(req.user._id, { avatar }, { runValidators: true })
     .then((user) => res.status(201).send(user))
     .catch((err) => {
-      if (err.code === 403) {
-        next(new ForbiddenError('Ошибка валидации'));
+      if (err.name === 'ValidationError') {
+        next(new ValidationError('Некорректные данные при обновлении пользователя'));
+      } else {
+        next(new ServerError());
       }
     });
 };

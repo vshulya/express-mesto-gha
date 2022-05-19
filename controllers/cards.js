@@ -1,6 +1,8 @@
 const Card = require('../models/card');
 const ForbiddenError = require('../errors/ForbiddenError');
 const NotFoundError = require('../errors/NotFoundError');
+const ServerError = require('../errors/ServerError');
+const ValidationError = require('../errors/ValidationError');
 
 // GET /cards
 module.exports.getCards = (_, res, next) => {
@@ -22,8 +24,10 @@ module.exports.createCard = (req, res, next) => {
     // данные не записались, вернём ошибку
     // eslint-disable-next-line consistent-return
     .catch((err) => {
-      if (err.code === 403) {
-        next(new ForbiddenError('Некорректные данные при создании карточки'));
+      if (err.name === 'ValidationError') {
+        next(new ValidationError('Некорректные данные при создании карточки'));
+      } else {
+        next(new ServerError());
       }
     });
 };
@@ -70,5 +74,5 @@ module.exports.dislikeCard = (req, res, next) => {
         next(new NotFoundError('Карточки не существует'));
       } res.send(card);
     })
-    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
+    .catch(next);
 };

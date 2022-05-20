@@ -18,8 +18,11 @@ app.use('/cards', cardRouter);
 mongoose.connect('mongodb://localhost:27017/mestodb');
 
 const errorHandler = (err, req, res, next) => {
-  res.status(err.code).res.send({ message: err.message });
-  next();
+  if (err) {
+    res.status(err.statusCode).send(err.message);
+  } else {
+    next();
+  }
 };
 
 app.use(errorHandler);

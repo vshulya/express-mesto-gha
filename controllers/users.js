@@ -1,7 +1,7 @@
 const User = require('../models/user');
 
 const NotFoundError = require('../errors/NotFoundError');
-const ConflictError = require('../errors/ConflictError');
+// const ConflictError = require('../errors/ConflictError');
 const ValidationError = require('../errors/ValidationError');
 const ServerError = require('../errors/ServerError');
 
@@ -22,20 +22,6 @@ module.exports.getUser = (req, res, next) => {
       }
     });
 };
-
-// module.exports.getUser = (req, res, next) => {
-//   User.findById(req.params.id)
-//     .then((user) => res.send(user))
-//     .catch((err) => {
-//       if (err.code === 404) {
-//         next(new NotFoundError('Пользователь не найден'));
-//       } else if (err.code === 400) {
-//         next(new ValidationError('Id пользователя введено некорректно')); // TODO change message
-//       } else {
-//         next(new ServerError());
-//       }
-//     });
-// };
 
 // GET /users — return users
 module.exports.getUsers = (_, res, next) => {
@@ -77,7 +63,11 @@ module.exports.updateUser = (req, res, next) => {
     .then((user) => {
       res.status(201).send(user);
     })
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new ValidationError('Id пользователя введено некорректно'));
+      }
+    });
 };
 
 // PATCH /users/me/avatar — update avatar
@@ -85,5 +75,9 @@ module.exports.updateAvatar = (req, res, next) => {
   const { avatar } = req.body;
   User.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
     .then((user) => res.status(201).send(user))
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new ValidationError('Id пользователя введено некорректно'));
+      }
+    });
 };

@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const { userRouter } = require('./routes/users');
 const { cardRouter } = require('./routes/cards');
+const NotFoundError = require('./errors/NotFoundError');
 
 const app = express();
 
@@ -14,6 +15,10 @@ app.use((req, res, next) => {
 });
 app.use('/users', userRouter);
 app.use('/cards', cardRouter);
+
+app.use((req, res, next) => {
+  next(new NotFoundError('Такого адреса не существует'));
+});
 
 mongoose.connect('mongodb://localhost:27017/mestodb');
 

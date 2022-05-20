@@ -40,14 +40,15 @@ module.exports.deleteCard = (req, res, next) => {
       if (!card) {
         next(new NotFoundError('Карточка  не найдена'));
       }
-      if (!card.owner.equals(req.user._id)) {
-        next(new ForbiddenError('Вы не можете удалить чужую карточку'));
-      }
       return card.remove()
         .then(() => {
           res.send({ message: 'Карточка удалена' });
         });
-    }).catch(next);
+    }).catch((err) => {
+      if (err.name === 'CastError') {
+        next(new ValidationError('Передан некорректный Id'));
+      }
+    });
 };
 
 // PUT /cards/:cardId/likes

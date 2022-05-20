@@ -15,8 +15,8 @@ module.exports.getUser = (req, res, next) => {
       res.send(user);
     })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new ValidationError('Id пользователя введено некорректно')); // TODO change message
+      if (err.name === 'CastError') {
+        next(new ValidationError('Id пользователя введено некорректно'));
       } else {
         next(new ServerError());
       }
@@ -45,14 +45,6 @@ module.exports.createUser = (req, res, next) => {
     });
 };
 
-// if (err.name === 'ValidationError') {
-//   next(new ValidationError('Некорректные данные при создании пользователя'));
-// } else if (err.code === 11000) {
-//   next(new ConflictError('Пользователь уже существует'));
-// } else {
-//   next(new ServerError());
-// }
-
 // PATCH /users/me — update profile
 module.exports.updateUser = (req, res, next) => {
   const { name, about } = req.body;
@@ -61,10 +53,14 @@ module.exports.updateUser = (req, res, next) => {
     new: true, runValidators: true,
   })
     .then((user) => {
-      res.status(201).send(user);
+      res.status(200).send(user);
     })
+    // eslint-disable-next-line consistent-return
     .catch((err) => {
       if (err.name === 'ValidationError') {
+        next(new ValidationError('Введены некорретные данные'));
+      }
+      if (err.name === 'CastError') {
         next(new ValidationError('Id пользователя введено некорректно'));
       }
     });
@@ -74,9 +70,12 @@ module.exports.updateUser = (req, res, next) => {
 module.exports.updateAvatar = (req, res, next) => {
   const { avatar } = req.body;
   User.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
-    .then((user) => res.status(201).send(user))
+    .then((user) => res.status(200).send(user))
     .catch((err) => {
       if (err.name === 'ValidationError') {
+        next(new ValidationError('Введены некорретные данные'));
+      }
+      if (err.name === 'CastError') {
         next(new ValidationError('Id пользователя введено некорректно'));
       }
     });

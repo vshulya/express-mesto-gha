@@ -34,17 +34,21 @@ module.exports.createCard = (req, res, next) => {
 
 // DELETE /cards/:cardId
 module.exports.deleteCard = (req, res, next) => {
-  Card.findByIdAndRemove(req.params._id)
-    .then((card) => {
-      if (!card) {
-        next(new NotFoundError('Карточки не существует'));
-      }
-      if (req.user._id !== card.owner.toString()) {
-        next(new ForbiddenError('У вас нет доступа к удалению этой карточки'));
-      }
-      res.send({ card });
+  const { cardId } = req.params;
+
+  Card.findById(cardId)
+    .orFail(() => {
+      throw new NotFoundError('Карточка  не найдена');
     })
-    .catch(next);
+    .then((card) => {
+      if (!card.owner.equals(req.user._id)) {
+        return next(new ForbiddenError('Вы не можете удалить чужую карточку'));
+      }
+      return card.remove()
+        .then(() => {
+          res.send({ message: 'Карточка удалена' });
+        });
+    }).catch(next);
 };
 
 // PUT /cards/:cardId/likes

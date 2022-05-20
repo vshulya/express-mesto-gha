@@ -41,6 +41,8 @@ module.exports.createUser = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new ValidationError('Некорректные данные при создании карточки'));
+      } else {
+        next(new ServerError());
       }
     });
 };
@@ -62,6 +64,8 @@ module.exports.updateUser = (req, res, next) => {
       }
       if (err.name === 'CastError') {
         next(new ValidationError('Id пользователя введено некорректно'));
+      } else {
+        next(new ServerError());
       }
     });
 };
@@ -77,6 +81,8 @@ module.exports.updateAvatar = (req, res, next) => {
       }
       if (err.name === 'CastError') {
         next(new ValidationError('Id пользователя введено некорректно'));
+      } else {
+        next(new ServerError());
       }
     });
 };

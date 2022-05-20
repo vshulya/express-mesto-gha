@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const { userRouter } = require('./routes/users');
 const { cardRouter } = require('./routes/cards');
 const NotFoundError = require('./errors/NotFoundError');
+const errorHandler = require('./middlewares/errorHandler');
 
 const app = express();
 
@@ -21,14 +22,6 @@ app.use((req, res, next) => {
 });
 
 mongoose.connect('mongodb://localhost:27017/mestodb');
-
-const errorHandler = (err, req, res, next) => {
-  if (err) {
-    res.status(err.statusCode).send({ message: err.message });
-  } else {
-    next();
-  }
-};
 
 app.use(errorHandler);
 

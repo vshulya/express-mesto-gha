@@ -14,7 +14,13 @@
     "url": "git+https://github.com/vshulya/express-mesto-gha.git"
   },
   "keywords": [],
-  "author": "",
+  "author": {
+    "name": "Valentina Vogusova",
+    "project": {
+      "name": "Mesto backend",
+      "stack": "NodeJs, Express, Mongoose"
+    }
+  },
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/vshulya/express-mesto-gha/issues"

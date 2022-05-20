@@ -58,12 +58,16 @@ module.exports.likeCard = (req, res, next) => {
     { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
     { new: true },
   )
-    .then((card) => {
-      if (!card) {
+    .then((like) => {
+      if (!like) {
         next(new NotFoundError('Карточки не существует'));
-      } res.send(card);
+      } res.send(like);
     })
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new ValidationError('Передан некорректный Id'));
+      }
+    });
 };
 
 // DELETE /cards/:cardId/likes
@@ -73,10 +77,14 @@ module.exports.dislikeCard = (req, res, next) => {
     { $pull: { likes: req.user._id } }, // убрать _id из массива
     { new: true },
   )
-    .then((card) => {
-      if (!card) {
+    .then((like) => {
+      if (!like) {
         next(new NotFoundError('Карточки не существует'));
-      } res.send(card);
+      } res.send(like);
     })
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new ValidationError('Передан некорректный Id'));
+      }
+    });
 };

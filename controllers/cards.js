@@ -1,5 +1,4 @@
 const Card = require('../models/card');
-const ForbiddenError = require('../errors/ForbiddenError');
 const NotFoundError = require('../errors/NotFoundError');
 const ServerError = require('../errors/ServerError');
 const ValidationError = require('../errors/ValidationError');
@@ -67,6 +66,7 @@ module.exports.likeCard = (req, res, next) => {
       if (err.name === 'CastError') {
         next(new ValidationError('Передан некорректный Id'));
       }
+      next(err);
     });
 };
 
@@ -74,17 +74,20 @@ module.exports.likeCard = (req, res, next) => {
 module.exports.dislikeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
-    { $pull: { likes: req.user._id } }, // убрать _id из массива
+    { $pull: { likes: req.user._id } },
     { new: true },
   )
     .then((like) => {
       if (!like) {
-        next(new NotFoundError('Карточки не существует'));
-      } res.send(like);
+        throw new NotFoundError('Переданный id не найден');
+      }
+      res.send({ data: like });
     })
+    // eslint-disable-next-line consistent-return
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new ValidationError('Передан некорректный Id'));
+        return next(new ValidationError('Передан некорректный Id'));
       }
+      next(err);
     });
 };

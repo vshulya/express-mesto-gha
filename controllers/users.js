@@ -1,9 +1,29 @@
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 
 const NotFoundError = require('../errors/NotFoundError');
-// const ConflictError = require('../errors/ConflictError');
+const ConflictError = require('../errors/ConflictError');
 const ValidationError = require('../errors/ValidationError');
 const ServerError = require('../errors/ServerError');
+
+const MONGO_DUPLICATE_KEY_CODE = 11000;
+// const JWT_SECRET_KEY = 1234567890;
+
+const saltRounds = 10;
+
+// GET /users/me - current user
+module.exports.getMe = (req, res, next) => {
+  const { _id } = req.user;
+  User.find({ _id })
+    .then((user) => {
+      if (!user) {
+        next(new NotFoundError('Пользователь не найден'));
+      }
+      return res.send(...user);
+    })
+    .catch(next);
+};
 
 // GET /users/:userId - return user by _id
 module.exports.getUser = (req, res, next) => {
@@ -32,19 +52,28 @@ module.exports.getUsers = (_, res, next) => {
 
 // POST /users — create user
 module.exports.createUser = (req, res, next) => {
-  const { name, about, avatar } = req.body;
-
-  User.create({ name, about, avatar })
-    // вернём записанные в базу данные
-    .then((user) => res.status(201).send(user))
-    // данные не записались, вернём ошибку
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new ValidationError('Некорректные данные при создании карточки'));
-      } else {
-        next(new ServerError());
-      }
-    });
+  const {
+    name, about, avatar, email, password,
+  } = req.body;
+  if (!email || !password) {
+    res.status(400).send({ message: 'Не передан email или пароль' });
+    return;
+  }
+  bcrypt.hash(password, saltRounds).then((hash) => {
+    // Store hash in your password DB.
+    User.create({
+      name, about, avatar, email, password: hash,
+    })
+      // вернём записанные в базу данные
+      .then((user) => res.status(201).send(user))
+      // данные не записались, вернём ошибку
+      .catch((err) => {
+        if (err.code === MONGO_DUPLICATE_KEY_CODE) {
+          next(new ConflictError('Пользователь с таким email уже существует'));
+        }
+        next(err);
+      });
+  });
 };
 
 // PATCH /users/me — update profile
@@ -57,7 +86,6 @@ module.exports.updateUser = (req, res, next) => {
     .then((user) => {
       res.status(200).send(user);
     })
-    // eslint-disable-next-line consistent-return
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new ValidationError('Введены некорретные данные'));
@@ -84,5 +112,25 @@ module.exports.updateAvatar = (req, res, next) => {
       } else {
         next(new ServerError());
       }
+    });
+};
+
+// login
+module.exports.login = (req, res) => {
+  const { email, password } = req.body;
+
+  return User.findUserByCredentials(email, password)
+    .then((user) => {
+      // создадим токен
+      const token = jwt.sign({ _id: user._id }, 'JWT_SECRET_KEY', { expiresIn: '7d' });
+
+      // вернём токен
+      res.send({ token });
+    })
+    .catch((err) => {
+      // ошибка аутентификации
+      res
+        .status(401)
+        .send({ message: err.message });
     });
 };

@@ -65,7 +65,16 @@ module.exports.createUser = (req, res, next) => {
       name, about, avatar, email, password: hash,
     })
       // вернём записанные в базу данные
-      .then((user) => res.status(201).send(user))
+      .then((user) => {
+        const { _id } = user;
+        res.status(201).send({
+          _id,
+          name,
+          about,
+          avatar,
+          email,
+        });
+      })
       // данные не записались, вернём ошибку
       .catch((err) => {
         if (err.code === MONGO_DUPLICATE_KEY_CODE) {

@@ -27,20 +27,21 @@ module.exports.getMe = (req, res, next) => {
 
 // GET /users/:userId - return user by _id
 module.exports.getUser = (req, res, next) => {
-  User.findById(req.params.id)
+  User.findById(req.params.userId)
     .then((user) => {
       if (!user) {
         next(new NotFoundError('Пользователь не найден'));
       }
       res.status(200).send(user);
     })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        next(new NotFoundError('Пользователь с таким id не найден'));
-      } else {
-        next(new ServerError());
-      }
-    });
+    .catch(next);
+  // .catch((err) => {
+  //   if (err.name === 'CastError') {
+  //     next(new NotFoundError('Пользователь с таким id не найден'));
+  //   } else {
+  //     next(new ServerError());
+  //   }
+  // });
 };
 
 // GET /users — return users

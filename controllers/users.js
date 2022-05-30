@@ -32,11 +32,11 @@ module.exports.getUser = (req, res, next) => {
       if (!user) {
         next(new NotFoundError('Пользователь не найден'));
       }
-      res.send(user);
+      res.status(200).send(user);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new ValidationError('Id пользователя введено некорректно'));
+        next(new NotFoundError('Пользователь с таким id не найден'));
       } else {
         next(new ServerError());
       }
